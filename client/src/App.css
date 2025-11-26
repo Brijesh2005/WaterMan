@@ -1,0 +1,208 @@
+/* Theme tokens and styles adapted from provided design tokens
+  Includes a .dark variant that switches the color palette.
+*/
+
+:root {
+  --font-size: 16px;
+  --background: #ffffff;
+  --foreground: oklch(0.145 0 0);
+  --card: #ffffff;
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: #030213;
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.95 0.0058 264.53);
+  --secondary-foreground: #030213;
+  --muted: #ececf0;
+  --muted-foreground: #717182;
+  --accent: #e9ebef;
+  --accent-foreground: #030213;
+  --destructive: #d4183d;
+  --destructive-foreground: #ffffff;
+  --border: rgba(0, 0, 0, 0.1);
+  --input: transparent;
+  --input-background: #f3f3f5;
+  --switch-background: #cbced4;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: #030213;
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.637 0.237 25.331);
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(0.269 0 0);
+  --sidebar-ring: oklch(0.439 0 0);
+}
+
+/* Map to color-* convenience variables used in components */
+:root, .dark {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-ring: var(--ring);
+}
+
+/* Basic reset and typography */
+* { box-sizing: border-box; }
+html { font-size: var(--font-size); }
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography scale (simple mapping) */
+h1 { font-size: 2rem; font-weight: var(--font-weight-medium); line-height: 1.3; }
+h2 { font-size: 1.5rem; font-weight: var(--font-weight-medium); line-height: 1.35; }
+h3 { font-size: 1.25rem; font-weight: var(--font-weight-medium); line-height: 1.4; }
+h4 { font-size: 1rem; font-weight: var(--font-weight-medium); line-height: 1.4; }
+p, label, button, input { font-size: 1rem; line-height: 1.5; }
+
+/* Logo styling */
+.navbar-brand-logo { display: flex; align-items: center; gap: 12px; cursor: pointer; transition: transform 0.3s ease; margin-right: auto; }
+.navbar-brand-logo:hover { transform: scale(1.05); }
+.logo-svg { filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2)); }
+.logo-text { font-size: 1rem; font-weight: 700; letter-spacing: 0.5px; color: #ffffff; white-space: nowrap; }
+
+/* Navbar adjustments */
+.navbar { padding: 12px 0 !important; }
+.navbar-nav { gap: 8px; margin-left: auto; }
+.collapse.navbar-collapse { flex-basis: auto; }
+
+/* App structure */
+.App { min-height: 100vh; }
+.App-header { padding: 18px 24px; background: var(--color-card); color: var(--color-card-foreground); border-bottom: 1px solid rgba(0,0,0,0.04); }
+.container { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+
+/* Cards */
+.card { background: var(--color-card); color: var(--color-card-foreground); border: 1px solid var(--color-border); border-radius: var(--radius); box-shadow: 0 6px 18px rgba(2,6,23,0.04); }
+.card-header { padding: 12px 16px; font-weight: var(--font-weight-medium); }
+.card-body { padding: 16px; }
+
+/* Buttons */
+.btn-primary { background: var(--color-primary); color: var(--color-primary-foreground); border: none; padding: 8px 12px; border-radius: 8px; font-weight: var(--font-weight-medium); cursor: pointer; }
+.btn-primary:hover { opacity: 0.95; }
+.btn { font-family: inherit; }
+
+/* Form controls */
+.form-control { background: var(--color-input-background); color: var(--color-foreground); border: 1px solid var(--color-border); padding: 8px 10px; border-radius: 8px; }
+.form-control:focus { outline: 2px solid rgba(0,0,0,0.06); box-shadow: 0 0 0 3px rgba(0,0,0,0.03); }
+.form-label { color: var(--color-foreground); font-weight: var(--font-weight-medium); margin-bottom: 6px; display: block; }
+.form-text { color: var(--color-muted-foreground); }
+
+/* Table */
+.table { width: 100%; border-collapse: collapse; background: var(--color-card); border-radius: 8px; overflow: hidden; }
+.table th, .table td { padding: 10px 12px; border-bottom: 1px solid var(--color-border); }
+.table thead th { text-align: left; color: var(--color-muted-foreground); }
+.table tbody tr:hover { background: rgba(0,0,0,0.02); }
+
+/* Navbar / navigation */
+.navbar { background: transparent; padding: 12px 0; }
+.nav-link.btn-link { color: var(--color-secondary-foreground); font-weight: var(--font-weight-medium); }
+.nav-link.btn-link.active { background: var(--color-accent); color: var(--color-accent-foreground); border-radius: 8px; }
+
+/* Helpers and responsive */
+.mb-3 { margin-bottom: 1rem; }
+.container .row { display: flex; flex-wrap: nowrap; gap: 24px; align-items: flex-start; }
+.col-md-4 { flex: 0 0 40%; min-width: 0; }
+.col-md-8 { flex: 1; min-width: 0; overflow-x: auto; }
+.col-md-40 { flex: 0 0 40%; min-width: 0; }
+.col-md-60 { flex: 1; min-width: 0; overflow-x: auto; }
+
+/* Footer */
+.App-footer { color: var(--color-muted-foreground); padding: 12px; font-size: 13px; }
+
+/* Small utility */
+.code { background: var(--color-popover); color: var(--color-popover-foreground); padding: 2px 6px; border-radius: 4px; }
+
+/* Water Saving Visualization */
+.water-saving-container { padding: 24px 0; }
+.water-saving-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; }
+.water-card { background: var(--color-card); border: 1px solid var(--color-border); border-radius: 12px; padding: 20px; text-align: center; transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.water-card:hover { transform: translateY(-6px); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1); }
+.water-svg { width: 100%; height: 140px; margin-bottom: 12px; }
+.water-card h5 { color: var(--color-foreground); font-weight: var(--font-weight-medium); margin-bottom: 8px; }
+.water-card p { color: var(--color-muted-foreground); font-size: 0.9rem; line-height: 1.4; margin: 0; }
+
+/* Conservation Cards */
+.conservation-sections { margin-top: 24px; }
+.conservation-card { border-radius: 12px; overflow: hidden; }
+.conservation-header { display: flex; align-items: center; gap: 12px; padding: 16px 24px; }
+.conservation-header h3 { margin: 0; font-size: 1.3rem; font-weight: var(--font-weight-medium); }
+.section-icon { width: 28px; height: 28px; }
+.at-home-header { background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%); color: #0284c7; }
+.yard-header { background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); color: #22c55e; }
+.tips-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; }
+.tip-item { background: var(--color-popover); border: 1px solid var(--color-border); border-radius: 10px; padding: 16px; text-align: center; transition: all 0.3s ease; }
+.tip-item:hover { transform: translateY(-4px); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08); }
+.tip-svg-container { height: 140px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+.tip-svg { width: 100%; height: 100%; }
+.tip-item h5 { color: var(--color-foreground); font-weight: var(--font-weight-medium); margin: 12px 0 8px 0; font-size: 0.95rem; }
+.tip-item p { color: var(--color-muted-foreground); font-size: 0.85rem; line-height: 1.4; margin: 0; }
+
+/* End of file */
