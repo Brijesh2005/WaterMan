@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const Conservation = () => {
+const Conservation = ({ user }) => {
+  // Current user state
+  const [currentUser, setCurrentUser] = useState(user);
+
   // Conservation Methods Management
   const [methods, setMethods] = useState([]);
   const [methodFormData, setMethodFormData] = useState({
@@ -14,8 +17,6 @@ const Conservation = () => {
 
   // Implementation Records Management
   const [records, setRecords] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [selectedUserId, setSelectedUserId] = useState('');
   const [recordFormData, setRecordFormData] = useState({
     methodId: '',
     dateImplemented: '',
@@ -23,6 +24,7 @@ const Conservation = () => {
     savingsAchieved: ''
   });
   const [recordLoading, setRecordLoading] = useState(false);
+  const [recordError, setRecordError] = useState('');
 
   // Fetch methods
   const fetchMethods = useCallback(async () => {
@@ -44,8 +46,8 @@ const Conservation = () => {
   const fetchRecords = useCallback(async () => {
     try {
       let url = 'http://localhost:5000/api/implementation-records';
-      if (selectedUserId) {
-        url += `?userId=${selectedUserId}`;
+      if (currentUser && currentUser.user_id) {
+        url += `?userId=${currentUser.user_id}`;
       }
       const response = await axios.get(url);
       if (Array.isArray(response.data)) {
@@ -66,27 +68,14 @@ const Conservation = () => {
       console.error('Error fetching implementation records:', error);
       setRecords([]);
     }
-  }, [selectedUserId]);
+  }, [currentUser]);
 
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/api/users');
-      if (Array.isArray(response.data)) {
-        setUsers(response.data);
-      } else {
-        console.warn('Received users data is not an array:', response.data);
-        setUsers([]);
-      }
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      setUsers([]);
-    }
-  };
+
 
   useEffect(() => {
+    setCurrentUser(user);
     fetchMethods();
-    fetchUsers();
-  }, [fetchMethods]);
+  }, [user, fetchMethods]);
 
   useEffect(() => {
     fetchRecords();
@@ -132,29 +121,47 @@ const Conservation = () => {
 
   const handleRecordSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedUserId || !recordFormData.methodId || !recordFormData.dateImplemented || !recordFormData.savingsAchieved) {
+    console.log('Current user:', currentUser);
+    console.log('Record form data:', recordFormData);
+    if (!currentUser || !currentUser.user_id) {
+      setRecordError('User not logged in');
+      return;
+    }
+    if (!recordFormData.methodId || !recordFormData.dateImplemented || !recordFormData.savingsAchieved) {
+      setRecordError('All fields are required');
       return;
     }
     setRecordLoading(true);
     try {
       // Format dateImplemented as YYYY-MM-DD string to match Oracle DATE format
       const formattedDateImplemented = new Date(recordFormData.dateImplemented).toISOString().slice(0, 10);
-      await axios.post('http://localhost:5000/api/implementation-records', {
-        userId: selectedUserId,
+      console.log('Sending data to server:', {
+        userId: currentUser.user_id,
         methodId: recordFormData.methodId,
         dateImplemented: formattedDateImplemented,
         status: recordFormData.status,
         savingsAchieved: recordFormData.savingsAchieved
       });
+      const response = await axios.post('http://localhost:5000/api/implementation-records', {
+        userId: currentUser.user_id,
+        methodId: recordFormData.methodId,
+        dateImplemented: formattedDateImplemented,
+        status: recordFormData.status,
+        savingsAchieved: recordFormData.savingsAchieved
+      });
+      console.log('Server response:', response);
       setRecordFormData({
         methodId: '',
         dateImplemented: '',
         status: 'active',
         savingsAchieved: ''
       });
+      setRecordError('');
       fetchRecords();
     } catch (error) {
       console.error('Error adding implementation record:', error);
+      console.error('Error response:', error.response);
+      setRecordError(error.response?.data?.error || 'Failed to add implementation record');
     } finally {
       setRecordLoading(false);
     }
@@ -176,75 +183,77 @@ const Conservation = () => {
       </div>
 
       <div className="row mt-2">
-        <div className="col-md-40">
-          <div className="card">
-            <div className="card-header">
-              <h5>Add New Method</h5>
-            </div>
-            <div className="card-body">
-              <form onSubmit={handleMethodSubmit}>
-                <div className="mb-3">
-                  <label className="form-label">Method Name</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="methodName"
-                    value={methodFormData.methodName}
-                    onChange={handleMethodInputChange}
-                    placeholder="Enter method name"
-                    required
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Description</label>
-                  <textarea
-                    className="form-control"
-                    name="description"
-                    value={methodFormData.description}
-                    onChange={handleMethodInputChange}
-                    placeholder="Describe the conservation method"
-                    rows="3"
-                    required
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Cost ($)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    className="form-control"
-                    name="cost"
-                    value={methodFormData.cost}
-                    onChange={handleMethodInputChange}
-                    required
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Efficiency Rating (1-5)</label>
-                  <select
-                    className="form-control"
-                    name="efficiencyRating"
-                    value={methodFormData.efficiencyRating}
-                    onChange={handleMethodInputChange}
-                    required
-                  >
-                    <option value="">-- Select Rating --</option>
-                    <option value="1">1 - Low</option>
-                    <option value="2">2 - Below Average</option>
-                    <option value="3">3 - Average</option>
-                    <option value="4">4 - Above Average</option>
-                    <option value="5">5 - Excellent</option>
-                  </select>
-                </div>
-                <button type="submit" className="btn btn-primary" disabled={methodLoading}>
-                  {methodLoading ? 'Adding...' : 'Add Method'}
-                </button>
-              </form>
+        {currentUser && currentUser.role === 'admin' && (
+          <div className="col-md-40">
+            <div className="card">
+              <div className="card-header">
+                <h5>Add New Method</h5>
+              </div>
+              <div className="card-body">
+                <form onSubmit={handleMethodSubmit}>
+                  <div className="mb-3">
+                    <label className="form-label">Method Name</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="methodName"
+                      value={methodFormData.methodName}
+                      onChange={handleMethodInputChange}
+                      placeholder="Enter method name"
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Description</label>
+                    <textarea
+                      className="form-control"
+                      name="description"
+                      value={methodFormData.description}
+                      onChange={handleMethodInputChange}
+                      placeholder="Describe the conservation method"
+                      rows="3"
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Cost ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="form-control"
+                      name="cost"
+                      value={methodFormData.cost}
+                      onChange={handleMethodInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Efficiency Rating (1-5)</label>
+                    <select
+                      className="form-control"
+                      name="efficiencyRating"
+                      value={methodFormData.efficiencyRating}
+                      onChange={handleMethodInputChange}
+                      required
+                    >
+                      <option value="">-- Select Rating --</option>
+                      <option value="1">1 - Low</option>
+                      <option value="2">2 - Below Average</option>
+                      <option value="3">3 - Average</option>
+                      <option value="4">4 - Above Average</option>
+                      <option value="5">5 - Excellent</option>
+                    </select>
+                  </div>
+                  <button type="submit" className="btn btn-primary" disabled={methodLoading}>
+                    {methodLoading ? 'Adding...' : 'Add Method'}
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        <div className="col-md-60">
+        <div className={`col-md-${currentUser && currentUser.role === 'admin' ? '60' : '100'}`}>
           <div className="card">
             <div className="card-header">
               <h5>Conservation Methods List</h5>
@@ -295,23 +304,12 @@ const Conservation = () => {
               <h5>Record Implementation</h5>
             </div>
             <div className="card-body">
-              <form onSubmit={handleRecordSubmit}>
-                <div className="mb-3">
-                  <label className="form-label">Select User</label>
-                  <select
-                    className="form-control"
-                    value={selectedUserId}
-                    onChange={(e) => setSelectedUserId(e.target.value)}
-                    required
-                  >
-                    <option value="">-- Select User --</option>
-                    {users.map((user) => (
-                      <option key={user[0]} value={user[0]}>
-                        {user[1]}
-                      </option>
-                    ))}
-                  </select>
+              {recordError && (
+                <div className="alert alert-danger" role="alert">
+                  {recordError}
                 </div>
+              )}
+              <form onSubmit={handleRecordSubmit}>
                 <div className="mb-3">
                   <label className="form-label">Conservation Method</label>
                   <select

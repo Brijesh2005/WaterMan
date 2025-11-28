@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const oracledb = require('oracledb');
 const db = require('../db');
 
 // GET all implementation records
@@ -149,28 +150,39 @@ router.get('/:id', async (req, res) => {
           // Insert implementation record
           const insertQuery = `
             INSERT INTO ImplementationRecord (USER_ID, METHOD_ID, DATE_IMPLEMENTED, STATUS, SAVINGS_ACHIEVED, DATE_CREATED)
-            VALUES (:userId, :methodId, :dateImplemented, :status, :savingsAchieved, CURRENT_TIMESTAMP)
+            VALUES (:userId, :methodId, TO_DATE(:dateImplemented, 'YYYY-MM-DD'), :status, :savingsAchieved, CURRENT_TIMESTAMP)
           `;
+
+          console.log('About to execute insert query with params:', {
+            userId: userIdNum,
+            methodId: methodIdNum,
+            dateImplemented: dateImplemented,
+            status,
+            savingsAchieved: savings
+          });
 
           db.query(insertQuery,
             {
               userId: userIdNum,
               methodId: methodIdNum,
-              dateImplemented: new Date(Date.parse(dateImplemented)),
+              dateImplemented: dateImplemented,
               status,
               savingsAchieved: savings
             },
             (err, result) => {
               if (err) {
                 console.error('Detailed error inserting implementation record:', err);
-                console.error('Insert query params:', { userId: userIdNum, methodId: methodIdNum, dateImplemented, status, savingsAchieved: savings });
+                console.error('Insert query:', insertQuery);
+                console.error('Insert query params:', { userId: userIdNum, methodId: methodIdNum, dateImplemented: dateImplemented, status, savingsAchieved: savings });
                 console.error('Stack trace:', err.stack);
                 return res.status(500).json({ error: 'Failed to create implementation record', detail: err.message });
               }
 
+              console.log('Insert successful, result:', result);
+
               // Fetch and return the created record
               const selectQuery = `
-                SELECT 
+                SELECT
                   ir.RECORD_ID,
                   ir.USER_ID,
                   u.NAME,

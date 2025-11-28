@@ -43,6 +43,15 @@ router.post('/', async (req, res) => {
     }
     connection = await db.getConnection();
 
+    // Check if user exists
+    const userCheck = await connection.execute(
+      'SELECT user_id FROM Users WHERE user_id = :userId',
+      { userId: userIdNum }
+    );
+    if (userCheck.rows.length === 0) {
+      return res.status(400).json({ error: 'User not found' });
+    }
+
     const meterNumber = 'WM' + Date.now();
     await connection.execute(
       `INSERT INTO WaterMeters (user_id, meter_number, location, installation_date) VALUES (:userId, :meterNumber, :location, TO_DATE(:installationDate, 'YYYY-MM-DD'))`,

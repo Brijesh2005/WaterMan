@@ -11,7 +11,9 @@ router.get('/', async (req, res) => {
     console.log('Fetching users');
     connection = await db.getConnection();
     const result = await connection.execute(
-      `SELECT user_id, name, address, phone, email FROM Users ORDER BY name`
+      `SELECT user_id, name, address, phone, email FROM Users ORDER BY name`,
+      {},
+      { outFormat: oracledb.OUT_FORMAT_OBJECT }
     );
     console.log('Fetched users:', result.rows.length);
     res.json(result.rows);
@@ -66,6 +68,60 @@ router.post('/', async (req, res) => {
     }
   }
 });
+// POST login
+router.post('/login', async (req, res) => {
+  let connection;
+  try {
+    const { email, password, role } = req.body;
+
+    // Validate required fields
+    if (!email || !role) {
+      return res.status(400).json({ error: 'Email and role are required' });
+    }
+
+    console.log('Received POST /api/users/login with data:', req.body);
+    connection = await db.getConnection();
+
+    // Check if user exists with the specified email and role
+    const result = await connection.execute(
+      `SELECT user_id, name, email, role FROM Users WHERE email = :email AND role = :role`,
+      { email, role }
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    const user = result.rows[0];
+    console.log('User logged in:', user);
+
+    // For now, no password check since there's no password field
+    // In a real app, you'd hash and compare passwords here
+
+    res.status(200).json({
+      message: 'Login successful',
+      user: {
+        user_id: user[0],
+        name: user[1],
+        email: user[2],
+        role: user[3]
+      }
+    });
+  } catch (err) {
+    console.error('Error logging in:', err);
+    res.status(500).json({ error: 'Failed to login' });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error('Error closing connection:', err);
+      }
+    }
+  }
+});
+
+
 /*
 // DELETE user by id
 router.delete('/:id', async (req, res) => {
@@ -98,6 +154,44 @@ router.delete('/:id', async (req, res) => {
     }
   }
 });
+*/
 
+router.post('/register', async (req, res) => {
+  let connection;
+  try {
+    const { name, email, password, address, phone, role } = req.body;
 
-*/module.exports = router;
+    // Validate required fields
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Missing required fields: name, email, and password' });
+    }
+
+    console.log('Received POST /api/users/register with data:', req.body);
+    connection = await db.getConnection();
+
+    // Insert new user with role
+    const result = await connection.execute(
+      `INSERT INTO Users (name, email, address, phone, role) VALUES (:name, :email, :address, :phone, :role) RETURNING user_id INTO :id`,
+      { name, email, address, phone, role: role || 'user', id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER } },
+      { autoCommit: true }
+    );
+
+    const insertedId = result.outBinds.id[0];
+    console.log('Inserted user with id:', insertedId);
+
+    res.status(201).json({ message: 'User registered successfully', userId: insertedId });
+  } catch (err) {
+    console.error('Error registering user:', err);
+    res.status(500).json({ error: 'Failed to register user' });
+  } finally {
+    if (connection) {
+      try {
+        await connection.close();
+      } catch (err) {
+        console.error('Error closing connection:', err);
+      }
+    }
+  }
+});
+
+module.exports = router;

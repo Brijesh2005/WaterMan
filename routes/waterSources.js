@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
     const { userId } = req.query;
     connection = await db.getConnection();
 
-    let query = 'SELECT type, capacity, location FROM WaterSources';
+    let query = 'SELECT user_id, type, capacity, location FROM WaterSources';
     let binds = {};
 
     if (userId) {

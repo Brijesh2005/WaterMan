@@ -3,6 +3,8 @@
  * Runs SQL migrations to create ConservationMethod and ImplementationRecord tables
  */
 
+require('dotenv').config();
+const fs = require('fs');
 const { getConnection } = require('./db');
 
 // Migration 1: Create ConservationMethod table
@@ -50,12 +52,12 @@ const createImplementationRecordTable = async () => {
         FOREIGN KEY (method_id) REFERENCES ConservationMethod(method_id) ON DELETE CASCADE
       )
     `;
-    
+
     await connection.execute(query, {}, { autoCommit: true });
     console.log('✓ ImplementationRecord table created successfully');
   } catch (err) {
-    if (err.message.includes('ORA-00955') || err.message.includes('already exists')) {
-      console.log('✓ ImplementationRecord table already exists');
+    if (err.message.includes('ORA-00955') || err.message.includes('already exists') || err.message.includes('ORA-00054')) {
+      console.log('✓ ImplementationRecord table already exists or resource busy');
     } else {
       throw err;
     }
@@ -64,7 +66,49 @@ const createImplementationRecordTable = async () => {
   }
 };
 
-// Migration 3: Insert sample conservation methods
+// Migration 3: Run SQL migrations from files
+const runSqlMigrations = async () => {
+  const connection = await getConnection();
+  try {
+    const migrationFiles = [
+      'migrations/001_modify_tables_for_no_id_columns.sql',
+      'migrations/002_adjust_migration_to_current_schema.sql',
+      'migrations/003_add_conservation_tables.sql',
+      'migrations/004_add_role_to_users.sql'
+    ];
+
+    for (const file of migrationFiles) {
+      if (fs.existsSync(file)) {
+        console.log(`  Running ${file}...`);
+        const sql = fs.readFileSync(file, 'utf8');
+        const statements = sql.split('/').filter(stmt => stmt.trim().length > 0);
+
+        for (const statement of statements) {
+          if (statement.trim()) {
+            try {
+              await connection.execute(statement.trim(), {}, { autoCommit: true });
+            } catch (err) {
+              if (err.message.includes('already exists') || err.message.includes('ORA-01430') || err.message.includes('ORA-00955')) {
+                console.log(`    • Statement skipped (already exists)`);
+              } else {
+                console.error(`    ✗ Error in ${file}:`, err.message);
+              }
+            }
+          }
+        }
+        console.log(`  ✓ ${file} completed`);
+      } else {
+        console.log(`  • ${file} not found, skipping`);
+      }
+    }
+
+    console.log('✓ SQL migrations completed');
+  } finally {
+    await connection.close();
+  }
+};
+
+// Migration 4: Insert sample conservation methods
 const insertSampleMethods = async () => {
   const connection = await getConnection();
   try {
@@ -88,12 +132,12 @@ const insertSampleMethods = async () => {
           VALUES (:name, :desc, :cost, :rating)
         `;
 
-        await connection.execute(query, 
-          { 
-            name: method.name, 
-            desc: method.desc, 
-            cost: method.cost, 
-            rating: method.rating 
+        await connection.execute(query,
+          {
+            name: method.name,
+            desc: method.desc,
+            cost: method.cost,
+            rating: method.rating
           },
           { autoCommit: true }
         );
@@ -117,7 +161,7 @@ const insertSampleMethods = async () => {
 // Run all migrations
 const runMigrations = async () => {
   console.log('\n📦 Running Database Migrations...\n');
-  
+
   try {
     console.log('1. Creating ConservationMethod table...');
     await createConservationMethodTable();
@@ -125,7 +169,10 @@ const runMigrations = async () => {
     console.log('\n2. Creating ImplementationRecord table...');
     await createImplementationRecordTable();
 
-    console.log('\n3. Inserting sample conservation methods...');
+    console.log('\n3. Running SQL migrations...');
+    await runSqlMigrations();
+
+    console.log('\n4. Inserting sample conservation methods...');
     await insertSampleMethods();
 
     console.log('\n✅ All migrations completed successfully!\n');

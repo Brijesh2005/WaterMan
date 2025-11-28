@@ -3,8 +3,7 @@ import axios from 'axios';
 
 const Billing = () => {
   const [bills, setBills] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [selectedUserId, setSelectedUserId] = useState('');
+  const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     periodStart: '',
     periodEnd: '',
@@ -14,39 +13,31 @@ const Billing = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get('http://localhost:5000/api/users');
-      setUsers(response.data);
-    } catch (error) {
-      console.error('Error fetching users:', error);
+  // Check if user is admin
+  const isAdmin = user && user.role === 'admin';
+
+  useEffect(() => {
+    // Get logged-in user from localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
     }
-  };
+  }, []);
 
   const fetchBills = useCallback(async () => {
+    if (!user) return;
+
     try {
-      let url = 'http://localhost:5000/api/billing';
-      if (selectedUserId) {
-        url += `?userId=${selectedUserId}`;
-      }
-      const response = await axios.get(url);
+      const response = await axios.get(`http://localhost:5000/api/billing?userId=${user.user_id}`);
       setBills(response.data);
     } catch (error) {
       console.error('Error fetching billing records:', error);
     }
-  }, [selectedUserId]);
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchBills();
   }, [fetchBills]);
-
-  const handleUserChange = (e) => {
-    setSelectedUserId(e.target.value);
-  };
 
   const handleInputChange = (e) => {
     setFormData({
@@ -57,13 +48,13 @@ const Billing = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedUserId) {
+    if (!user) {
       return;
     }
     setLoading(true);
     try {
       await axios.post('http://localhost:5000/api/billing', {
-        userId: selectedUserId,
+        userId: user.id,
         periodStart: formData.periodStart,
         periodEnd: formData.periodEnd,
         totalUsage: formData.totalUsage,
@@ -97,22 +88,6 @@ const Billing = () => {
             </div>
             <div className="card-body">
               <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label className="form-label">Select User</label>
-                  <select
-                    className="form-control"
-                    value={selectedUserId}
-                    onChange={handleUserChange}
-                    required
-                  >
-                    <option value="">-- Select User --</option>
-                    {users.map((user) => (
-                      <option key={user[0]} value={user[0]}>
-                        {user[1]}
-                      </option>
-                    ))}
-                  </select>
-                </div>
                 <div className="mb-3">
                   <label className="form-label">Period Start</label>
                   <input

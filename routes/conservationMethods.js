@@ -59,9 +59,17 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST new conservation method
+// POST new conservation method (Admin only)
 router.post('/', async (req, res) => {
   try {
+    // Check if user is admin (this would come from authentication middleware in a real app)
+    // For now, we'll check a header or assume it's handled on the frontend
+    const userRole = req.headers['x-user-role'] || req.body.userRole;
+
+    if (!userRole || userRole !== 'admin') {
+      return res.status(403).json({ error: 'Only administrators can add conservation methods' });
+    }
+
     const { methodName, description, cost, efficiencyRating } = req.body;
     
     console.log('Incoming conservation method data:', { methodName, description, cost, efficiencyRating });

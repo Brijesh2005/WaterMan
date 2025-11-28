@@ -3,8 +3,7 @@ import axios from 'axios';
 
 const ConsumptionRecords = () => {
   const [records, setRecords] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [selectedUserId, setSelectedUserId] = useState('');
+  const [user, setUser] = useState(null);
   const [formData, setFormData] = useState({
     meterId: '',
     timestamp: '',
@@ -13,51 +12,44 @@ const ConsumptionRecords = () => {
   const [meters, setMeters] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Check if user is admin
+  const isAdmin = user && user.role === 'admin';
+
+  useEffect(() => {
+    // Get logged-in user from localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
   const fetchRecords = useCallback(async () => {
+    if (!user) return;
+
     try {
-      let url = 'http://localhost:5000/api/consumption-records';
-      if (selectedUserId) {
-        url += `?userId=${selectedUserId}`;
-      }
-      const response = await axios.get(url);
+      const response = await axios.get(`http://localhost:5000/api/consumption-records?userId=${user.user_id}`);
       setRecords(response.data);
     } catch (error) {
       console.error('Error fetching consumption records:', error);
     }
-  }, [selectedUserId]);
+  }, [user]);
 
-  const fetchUsers = async () => {
+  const fetchMeters = useCallback(async () => {
+    if (!user) return;
+
     try {
-      const response = await axios.get('http://localhost:5000/api/users');
-      setUsers(response.data);
+      const response = await axios.get(`http://localhost:5000/api/water-meters?userId=${user.user_id}`);
+      setMeters(response.data);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error fetching water meters:', error);
+      setMeters([]);
     }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchRecords();
-  }, [fetchRecords]);
-
-  const handleUserChange = async (e) => {
-    const userId = e.target.value;
-    setSelectedUserId(userId);
-    setFormData(prev => ({ ...prev, meterId: '' }));
-    if (userId) {
-      try {
-        const response = await axios.get(`http://localhost:5000/api/water-meters?userId=${userId}`);
-        setMeters(response.data);
-      } catch (error) {
-        setMeters([]);
-      }
-    } else {
-      setMeters([]);
-    }
-  };
+    fetchMeters();
+  }, [fetchRecords, fetchMeters]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -74,7 +66,7 @@ const ConsumptionRecords = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedUserId) {
+    if (!user) {
       setLoading(false);
       return;
     }
@@ -92,7 +84,7 @@ const ConsumptionRecords = () => {
     setLoading(true);
     try {
       await axios.post('http://localhost:5000/api/consumption-records', {
-        userId: selectedUserId,
+        userId: user.id,
         meterId: formData.meterId,
         timestamp: formData.timestamp,
         volumeUsed: formData.volumeUsed
@@ -119,81 +111,76 @@ const ConsumptionRecords = () => {
       <h2>Consumption Records Management</h2>
 
       <div className="row">
-        <div className="col-md-4">
-          <div className="card">
-            <div className="card-header">
-              <h5>Add New Record</h5>
-            </div>
-            <div className="card-body">
-              <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label className="form-label">Select User</label>
-                  <select
-                    className="form-control"
-                    value={selectedUserId}
-                    onChange={handleUserChange}
-                    required
-                  >
-                    <option value="">-- Select User --</option>
-                    {users.map((user) => (
-                      <option key={user[0]} value={user[0]}>
-                        {user[1]}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Select Meter Number</label>
-                  <select
-                    className="form-control"
-                    name="meterId"
-                    value={formData.meterId}
-                    onChange={handleInputChange}
-                    required
-                    disabled={!meters.length}
-                  >
-                    <option value="">-- Select Meter --</option>
-                    {meters.map((meter) => (
-                      <option key={meter[1]} value={meter[1]}>
-                        {meter[1]}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="form-text">Only meters registered to the selected user are shown.</div>
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Timestamp</label>
-                  <input
-                    type="datetime-local"
-                    className="form-control"
-                    name="timestamp"
-                    value={formData.timestamp}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label">Volume Used</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    className="form-control"
-                    name="volumeUsed"
-                    value={formData.volumeUsed}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
+        {!isAdmin && (
+          <div className="col-md-4">
+            <div className="card">
+              <div className="card-header">
+                <h5>Add New Record</h5>
+              </div>
+              <div className="card-body">
+                <form onSubmit={handleSubmit}>
+                  <div className="mb-3">
+                    <label className="form-label">Select Meter Number</label>
+                    <select
+                      className="form-control"
+                      name="meterId"
+                      value={formData.meterId}
+                      onChange={handleInputChange}
+                      required
+                      disabled={!meters.length}
+                    >
+                      <option value="">-- Select Meter --</option>
+                      {meters.map((meter) => (
+                        <option key={meter[1]} value={meter[1]}>
+                          {meter[1]}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="form-text">Only meters registered to you are shown.</div>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Timestamp</label>
+                    <input
+                      type="datetime-local"
+                      className="form-control"
+                      name="timestamp"
+                      value={formData.timestamp}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Volume Used</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      className="form-control"
+                      name="volumeUsed"
+                      value={formData.volumeUsed}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
 
-                <button type="submit" className="btn btn-primary" disabled={loading}>
-                  {loading ? 'Adding...' : 'Add Record'}
-                </button>
-              </form>
+                  <button type="submit" className="btn btn-primary" disabled={loading}>
+                    {loading ? 'Adding...' : 'Add Record'}
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        <div className="col-md-8">
+        {isAdmin && (
+          <div className="col-md-12">
+            <div className="alert alert-info">
+              <h5>Admin Access Restricted</h5>
+              <p>Admins cannot add consumption records. Use the Admin Dashboard to view user entries.</p>
+            </div>
+          </div>
+        )}
+
+        <div className={`col-md-${isAdmin ? '12' : '8'}`}>
           <div className="card">
             <div className="card-header">
               <h5>Consumption Records List</h5>

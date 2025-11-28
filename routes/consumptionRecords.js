@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
   try {
     connection = await db.getConnection();
     const result = await connection.execute(
-      `SELECT water_meter_number, consumption_date, consumption FROM ConsumptionRecords ORDER BY consumption_date DESC`
+      `SELECT user_id, water_meter_number, consumption_date, consumption FROM ConsumptionRecords ORDER BY consumption_date DESC`
     );
     res.json(result.rows);
   } catch (err) {
