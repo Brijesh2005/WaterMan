@@ -22,6 +22,7 @@ const billingRoutes = require('./routes/billing');
 const waterSourcesRoutes = require('./routes/waterSources');
 const conservationMethodsRoutes = require('./routes/conservationMethods');
 const implementationRecordsRoutes = require('./routes/implementationRecords');
+const waterSavingsRoutes = require('./routes/waterSavings');
 
 // Use routes
 app.use('/api/users', usersRoutes);
@@ -31,6 +32,7 @@ app.use('/api/billing', billingRoutes);
 app.use('/api/water-sources', waterSourcesRoutes);
 app.use('/api/conservation-methods', conservationMethodsRoutes);
 app.use('/api/implementation-records', implementationRecordsRoutes);
+app.use('/api/water-savings', waterSavingsRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

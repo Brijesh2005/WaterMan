@@ -26,6 +26,17 @@ const Conservation = ({ user }) => {
   const [recordLoading, setRecordLoading] = useState(false);
   const [recordError, setRecordError] = useState('');
 
+  // Water Savings Management
+  const [waterSavings, setWaterSavings] = useState([]);
+  const [waterMeters, setWaterMeters] = useState([]);
+  const [savingsFormData, setSavingsFormData] = useState({
+    waterMeterNumber: '',
+    implementationId: '',
+    endDate: ''
+  });
+  const [savingsLoading, setSavingsLoading] = useState(false);
+  const [savingsError, setSavingsError] = useState('');
+
   // Fetch methods
   const fetchMethods = useCallback(async () => {
     try {
@@ -70,6 +81,47 @@ const Conservation = ({ user }) => {
     }
   }, [currentUser]);
 
+  const fetchWaterSavings = useCallback(async () => {
+    try {
+      console.log('Fetching water savings for user:', currentUser);
+      let url = 'http://localhost:5000/api/water-savings';
+      if (currentUser && currentUser.user_id) {
+        url += `?userId=${currentUser.user_id}`;
+      }
+      console.log('Water savings URL:', url);
+      const response = await axios.get(url);
+      console.log('Water savings response:', response.data);
+      if (Array.isArray(response.data)) {
+        setWaterSavings(response.data);
+      } else {
+        console.warn('Received water savings data is not an array:', response.data);
+        setWaterSavings([]);
+      }
+    } catch (error) {
+      console.error('Error fetching water savings:', error);
+      setWaterSavings([]);
+    }
+  }, [currentUser]);
+
+  const fetchWaterMeters = useCallback(async () => {
+    try {
+      let url = 'http://localhost:5000/api/water-meters';
+      if (currentUser && currentUser.user_id) {
+        url += `?userId=${currentUser.user_id}`;
+      }
+      const response = await axios.get(url);
+      if (Array.isArray(response.data)) {
+        setWaterMeters(response.data);
+      } else {
+        console.warn('Received water meters data is not an array:', response.data);
+        setWaterMeters([]);
+      }
+    } catch (error) {
+      console.error('Error fetching water meters:', error);
+      setWaterMeters([]);
+    }
+  }, [currentUser]);
+
 
 
   useEffect(() => {
@@ -80,6 +132,14 @@ const Conservation = ({ user }) => {
   useEffect(() => {
     fetchRecords();
   }, [fetchRecords]);
+
+  useEffect(() => {
+    fetchWaterMeters();
+  }, [fetchWaterMeters]);
+
+  useEffect(() => {
+    fetchWaterSavings();
+  }, [fetchWaterSavings]);
 
   // Conservation Methods Handlers
   const handleMethodInputChange = (e) => {
@@ -164,6 +224,48 @@ const Conservation = ({ user }) => {
       setRecordError(error.response?.data?.error || 'Failed to add implementation record');
     } finally {
       setRecordLoading(false);
+    }
+  };
+
+  // Water Savings Handlers
+  const handleSavingsInputChange = (e) => {
+    setSavingsFormData({
+      ...savingsFormData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSavingsSubmit = async (e) => {
+    e.preventDefault();
+    if (!currentUser || !currentUser.user_id) {
+      setSavingsError('User not logged in');
+      return;
+    }
+    if (!savingsFormData.waterMeterNumber || !savingsFormData.implementationId || !savingsFormData.endDate) {
+      setSavingsError('All fields are required');
+      return;
+    }
+    setSavingsLoading(true);
+    try {
+      const response = await axios.post('http://localhost:5000/api/water-savings', {
+        userId: currentUser.user_id,
+        waterMeterNumber: savingsFormData.waterMeterNumber,
+        implementationId: savingsFormData.implementationId,
+        endDate: savingsFormData.endDate
+      });
+      console.log('Server response:', response);
+      setSavingsFormData({
+        waterMeterNumber: '',
+        implementationId: '',
+        endDate: ''
+      });
+      setSavingsError('');
+      fetchWaterSavings();
+    } catch (error) {
+      console.error('Error adding water savings record:', error);
+      setSavingsError(error.response?.data?.error || 'Failed to add water savings record');
+    } finally {
+      setSavingsLoading(false);
     }
   };
 
@@ -400,6 +502,121 @@ const Conservation = ({ user }) => {
                           </span>
                         </td>
                         <td>{record.savings_achieved}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Water Savings Section */}
+      <div className="row mt-4">
+        <div className="col-md-12">
+          <div className="card">
+            <div className="card-header conservation-header" style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', color: '#d97706' }}>
+              <h3 style={{ margin: 0 }}>Water Savings</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="row mt-2">
+        <div className="col-md-40">
+          <div className="card">
+            <div className="card-header">
+              <h5>Record Water Savings</h5>
+            </div>
+            <div className="card-body">
+              {savingsError && (
+                <div className="alert alert-danger" role="alert">
+                  {savingsError}
+                </div>
+              )}
+              <form onSubmit={handleSavingsSubmit}>
+                <div className="mb-3">
+                  <label className="form-label">Water Meter Number</label>
+                  <select
+                    className="form-control"
+                    name="waterMeterNumber"
+                    value={savingsFormData.waterMeterNumber}
+                    onChange={handleSavingsInputChange}
+                    required
+                    disabled={waterMeters.length === 0}
+                  >
+                    <option value="">-- Select Water Meter --</option>
+                    {waterMeters.map((meter, index) => (
+                      <option key={index} value={meter[1]}>
+                        {meter[1]} - {meter[2]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="mb-3">
+                  <label className="form-label">Implementation Record</label>
+                  <select
+                    className="form-control"
+                    name="implementationId"
+                    value={savingsFormData.implementationId}
+                    onChange={handleSavingsInputChange}
+                    required
+                    disabled={records.length === 0}
+                  >
+                    <option value="">-- Select Implementation --</option>
+                    {records.map((record) => (
+                      <option key={record.record_id} value={record.record_id}>
+                        {record.method_name} - {record.date_implemented}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">End Date</label>
+                  <input
+                    type="date"
+                    className="form-control"
+                    name="endDate"
+                    value={savingsFormData.endDate}
+                    onChange={handleSavingsInputChange}
+                    required
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary" disabled={savingsLoading}>
+                  {savingsLoading ? 'Recording...' : 'Record Savings'}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-md-60">
+          <div className="card">
+            <div className="card-header">
+              <h5>Water Savings List</h5>
+            </div>
+            <div className="card-body">
+              <div className="table-responsive">
+                <table className="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Meter Number</th>
+                      <th>Method</th>
+                      <th>Water Saved (L)</th>
+                      <th>End Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {waterSavings.map((saving, index) => (
+                      <tr key={index}>
+                        <td>{saving.NAME}</td>
+                        <td>{saving.WATER_METER_NUMBER}</td>
+                        <td>{saving.METHOD_NAME}</td>
+                        <td>{saving.SAVINGS}</td>
+                        <td>{saving.END_DATE ? saving.END_DATE.slice(0, 10) : ''}</td>
                       </tr>
                     ))}
                   </tbody>

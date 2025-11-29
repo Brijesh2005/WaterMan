@@ -10,7 +10,8 @@ const AdminDashboard = () => {
     billing: [],
     implementationRecords: [],
     users: [],
-    conservationMethods: []
+    conservationMethods: [],
+    waterSavings: []
   });
   const [loading, setLoading] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -28,14 +29,15 @@ const AdminDashboard = () => {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [waterSourcesRes, consumptionRecordsRes, waterMetersRes, billingRes, implementationRecordsRes, usersRes, conservationMethodsRes] = await Promise.all([
+      const [waterSourcesRes, consumptionRecordsRes, waterMetersRes, billingRes, implementationRecordsRes, usersRes, conservationMethodsRes, waterSavingsRes] = await Promise.all([
         axios.get('http://localhost:5000/api/water-sources'),
         axios.get('http://localhost:5000/api/consumption-records'),
         axios.get('http://localhost:5000/api/water-meters'),
         axios.get('http://localhost:5000/api/billing'),
         axios.get('http://localhost:5000/api/implementation-records'),
         axios.get('http://localhost:5000/api/users'),
-        axios.get('http://localhost:5000/api/conservation-methods')
+        axios.get('http://localhost:5000/api/conservation-methods'),
+        axios.get('http://localhost:5000/api/water-savings', { headers: { 'x-user-role': 'admin' } })
       ]);
 
       setData({
@@ -74,13 +76,14 @@ const AdminDashboard = () => {
           SAVINGS_ACHIEVED: record.savings_achieved
         })),
         users: (usersRes.data || []).map(user => ({
-          USER_ID: user[0],
-          NAME: user[1],
-          ADDRESS: user[2],
-          PHONE: user[3],
-          EMAIL: user[4]
+          USER_ID: user.USER_ID,
+          NAME: user.NAME,
+          ADDRESS: user.ADDRESS,
+          PHONE: user.PHONE,
+          EMAIL: user.EMAIL
         })),
-        conservationMethods: conservationMethodsRes.data || []
+        conservationMethods: conservationMethodsRes.data || [],
+        waterSavings: waterSavingsRes.data || []
       });
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -382,6 +385,33 @@ const AdminDashboard = () => {
             </div>
           </div>
         );
+      case 'water-savings':
+        return (
+          <div className="table-responsive">
+            <table className="table table-striped">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Meter Number</th>
+                  <th>Method</th>
+                  <th>Water Saved (L)</th>
+                  <th>End Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.waterSavings.map((saving, index) => (
+                  <tr key={index}>
+                    <td>{saving.NAME}</td>
+                    <td>{saving.WATER_METER_NUMBER}</td>
+                    <td>{saving.METHOD_NAME}</td>
+                    <td>{saving.SAVINGS}</td>
+                    <td>{saving.END_DATE ? saving.END_DATE.slice(0, 10) : ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
       default:
         return null;
     }
@@ -450,6 +480,14 @@ const AdminDashboard = () => {
                     onClick={() => setActiveTab('conservation-methods')}
                   >
                     Conservation Methods
+                  </button>
+                </li>
+                <li className="nav-item">
+                  <button
+                    className={`nav-link ${activeTab === 'water-savings' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('water-savings')}
+                  >
+                    Water Savings
                   </button>
                 </li>
               </ul>

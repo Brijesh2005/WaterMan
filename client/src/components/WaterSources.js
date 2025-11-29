@@ -154,11 +154,10 @@ const WaterSources = ({ user }) => {
                 <table className="table table-striped">
                   <thead>
                     <tr>
-                      {/* ID and Name columns removed */}
-                  <th>Type</th>
-                  <th>Capacity</th>
-                  <th>Location</th>
-                </tr>
+                      <th>Type</th>
+                      <th>Capacity</th>
+                      <th>Location</th>
+                    </tr>
               </thead>
               <tbody>
                 {sources.map((source, index) => (
