@@ -84,7 +84,7 @@ const ConsumptionRecords = () => {
     setLoading(true);
     try {
       await axios.post('http://localhost:5000/api/consumption-records', {
-        userId: user.id,
+        userId: user.user_id,
         meterId: formData.meterId,
         timestamp: formData.timestamp,
         volumeUsed: formData.volumeUsed

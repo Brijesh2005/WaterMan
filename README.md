@@ -1,15 +1,19 @@
 # Water Conservation Management System
 
-A full-stack web application for managing water consumption, conservation tips, and billing. Built with React, Node.js, and Express.
+A full-stack web application for managing water consumption, conservation tips, billing, and user alerts. Built with React, Node.js, Express, and Oracle Database.
 
 ## Features
 
-- **User Management** - Create and manage user profiles
+- **User Management** - Create, manage user profiles, login, and registration with role-based access
 - **Water Meters** - Register and track water meters by location
 - **Consumption Records** - Log and monitor water usage over time
 - **Billing System** - Generate and track billing records
 - **Water Sources** - Manage various water sources
-- **Conservation Tips** - View water-saving methods with visual guides
+- **Conservation Methods** - View and manage water-saving methods with efficiency ratings
+- **Implementation Records** - Track implementation of conservation methods by users
+- **Water Savings** - Calculate and track water savings from implemented methods
+- **Alerts** - Send notifications and alerts to users
+- **Admin Dashboard** - Administrative interface for managing the system
 - **Responsive Design** - Works on desktop and mobile devices
 
 ## Tech Stack
@@ -24,28 +28,60 @@ A full-stack web application for managing water consumption, conservation tips, 
 - **Node.js** - Runtime environment
 - **Express.js** - Web framework
 - **Oracle Database** - Data persistence
+- **oracledb** - Oracle database driver
+
+### Development Tools
+- **Nodemon** - Auto-restart for development
+- **Dotenv** - Environment variable management
 
 ## Project Structure
 
 ```
 WaterMan/
 ├── client/                    # React frontend
+│   ├── public/                # Static assets
 │   ├── src/
 │   │   ├── components/        # React components
-│   │   ├── App.js            # Main app component
-│   │   ├── App.css           # Global styles with design tokens
-│   │   └── index.js          # Entry point
+│   │   │   ├── AdminDashboard.js
+│   │   │   ├── Billing.js
+│   │   │   ├── Conservation.js
+│   │   │   ├── ConsumptionRecords.js
+│   │   │   ├── Login.js
+│   │   │   ├── SignUp.js
+│   │   │   ├── Users.js
+│   │   │   ├── WaterMeters.js
+│   │   │   ├── WaterSavings.js
+│   │   │   ├── WaterSavingVisualize.js
+│   │   │   └── WaterSources.js
+│   │   ├── App.js             # Main app component
+│   │   ├── App.css            # Global styles with design tokens
+│   │   └── index.js           # Entry point
 │   └── package.json
 ├── routes/                    # Express backend routes
-│   ├── users.js
-│   ├── water-meters.js
-│   ├── consumption-records.js
+│   ├── alerts.js
 │   ├── billing.js
-│   └── water-sources.js
+│   ├── conservationMethods.js
+│   ├── consumptionRecords.js
+│   ├── implementationRecords.js
+│   ├── users.js
+│   ├── waterMeters.js
+│   ├── waterSavings.js
+│   └── waterSources.js
+├── migrations/                # Database migration scripts
+│   ├── 001_modify_tables_for_no_id_columns.sql
+│   ├── 002_adjust_migration_to_current_schema.sql
+│   ├── 003_add_conservation_tables.sql
+│   ├── 004_add_role_to_users.sql
+│   ├── 005_add_password_to_users.sql
+│   ├── 006_add_water_savings_table.sql
+│   └── 007_add_water_saved_column.sql
 ├── server.js                  # Express server
 ├── db.js                      # Database connection
+├── migrate.js                 # Migration runner
+├── create_tables.js           # Database table creation script
 ├── create_tables.sql          # Database schema
-└── package.json
+├── package.json
+└── README.md
 ```
 
 ## Installation
@@ -76,7 +112,12 @@ npm install
 sqlplus username/password @create_tables.sql
 ```
 
-2. Update database connection in `db.js` if needed
+2. Run migrations to update the schema:
+```bash
+npm run migrate
+```
+
+3. Update database connection in `db.js` if needed
 
 ## Running the Application
 
@@ -103,6 +144,8 @@ The frontend will run on `http://localhost:3000`
 ### Users
 - `GET /api/users` - Get all users
 - `POST /api/users` - Create new user
+- `POST /api/users/login` - User login
+- `POST /api/users/register` - User registration
 
 ### Water Meters
 - `GET /api/water-meters` - Get all meters
@@ -120,21 +163,51 @@ The frontend will run on `http://localhost:3000`
 - `GET /api/water-sources` - Get water sources
 - `POST /api/water-sources` - Create water source
 
+### Conservation Methods
+- `GET /api/conservation-methods` - Get all conservation methods
+- `GET /api/conservation-methods/:id` - Get conservation method by ID
+- `POST /api/conservation-methods` - Create new conservation method (Admin only)
+
+### Implementation Records
+- `GET /api/implementation-records` - Get all implementation records
+- `GET /api/implementation-records/:id` - Get implementation record by ID
+- `POST /api/implementation-records` - Create new implementation record
+
+### Water Savings
+- `GET /api/water-savings` - Get all water savings records
+- `POST /api/water-savings` - Create new water savings record
+
+### Alerts
+- `GET /api/alerts` - Get all alerts
+- `POST /api/alerts` - Create new alert
+
 ## Database Schema
 
 The application uses the following main tables:
-- **Users** - User profiles and contact information
+- **Users** - User profiles, contact information, roles
 - **WaterMeters** - Water meter details and locations
 - **ConsumptionRecords** - Water usage logs
 - **Billing** - Billing information and payment status
 - **WaterSources** - Available water sources
+- **ConservationMethod** - Water-saving methods with efficiency ratings
+- **ImplementationRecord** - Records of implemented conservation methods
+- **WaterSavings** - Calculated water savings from implementations
+- **Alerts** - User notifications and alerts
 
 ## Features Highlights
 
-### Conservation Tips
-- **At Home**: Fix leaks, reduce shower time, turn off taps, run full loads, use efficient appliances, collect wastewater
-- **Yard & Garden**: Water wisely, use brooms, plant drought-resistant species, use mulch
-- **Visual Guides**: Smooth SVG illustrations for each conservation method
+### Conservation Methods
+- **Efficiency Ratings**: Methods rated 1-5 for effectiveness
+- **Cost Tracking**: Associated costs for implementation
+- **Visual Guides**: Smooth SVG illustrations for each method
+
+### User Roles
+- **Admin**: Full system access, can manage conservation methods
+- **User**: Standard access for personal water management
+
+### Water Savings Calculation
+- Automatic calculation based on implementation duration and method efficiency
+- Historical tracking of savings achieved
 
 ### Responsive Layout
 - Side-by-side form and table on desktop
@@ -164,4 +237,4 @@ Created as a Water Conservation Management System
 
 ---
 
-**Last Updated:** November 2025
+**Last Updated:** December 2024

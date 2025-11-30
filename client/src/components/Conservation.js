@@ -67,7 +67,7 @@ const Conservation = ({ user }) => {
           ...record,
           user_name: record.name, // fix: use record.name directly as it is a string not array
           method_name: record.method_name, // fix: use record.method_name directly
-          date_implemented: record.date_implemented ? record.date_implemented.slice(0, 10) : '',
+          date_implemented: record.date_implemented ? new Date(record.date_implemented).toISOString().slice(0, 10) : '',
           savings_achieved: record.savings_achieved
         }));
         setRecords(mappedRecords);
@@ -156,7 +156,9 @@ const Conservation = ({ user }) => {
     }
     setMethodLoading(true);
     try {
-      await axios.post('http://localhost:5000/api/conservation-methods', methodFormData);
+      await axios.post('http://localhost:5000/api/conservation-methods', methodFormData, {
+        headers: { 'x-user-role': currentUser.role }
+      });
       setMethodFormData({
         methodName: '',
         description: '',
@@ -616,7 +618,7 @@ const Conservation = ({ user }) => {
                         <td>{saving.WATER_METER_NUMBER}</td>
                         <td>{saving.METHOD_NAME}</td>
                         <td>{saving.SAVINGS}</td>
-                        <td>{saving.END_DATE ? saving.END_DATE.slice(0, 10) : ''}</td>
+                        <td>{saving.END_DATE ? new Date(saving.END_DATE).toISOString().slice(0, 10) : ''}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -75,17 +75,17 @@ router.post('/login', async (req, res) => {
     const { email, password, role } = req.body;
 
     // Validate required fields
-    if (!email || !role) {
-      return res.status(400).json({ error: 'Email and role are required' });
+    if (!email || !password || !role) {
+      return res.status(400).json({ error: 'Email, password, and role are required' });
     }
 
     console.log('Received POST /api/users/login with data:', req.body);
     connection = await db.getConnection();
 
-    // Check if user exists with the specified email and role
+    // Check if user exists with the specified email, password, and role
     const result = await connection.execute(
-      `SELECT user_id, name, email, role FROM Users WHERE email = :email AND role = :role`,
-      { email, role }
+      `SELECT user_id, name, email, role FROM Users WHERE email = :email AND password = :password AND role = :role`,
+      { email, password, role }
     );
 
     if (result.rows.length === 0) {
@@ -94,9 +94,6 @@ router.post('/login', async (req, res) => {
 
     const user = result.rows[0];
     console.log('User logged in:', user);
-
-    // For now, no password check since there's no password field
-    // In a real app, you'd hash and compare passwords here
 
     res.status(200).json({
       message: 'Login successful',
@@ -169,10 +166,20 @@ router.post('/register', async (req, res) => {
     console.log('Received POST /api/users/register with data:', req.body);
     connection = await db.getConnection();
 
-    // Insert new user with role
+    // Check if user with this email already exists
+    const existingUser = await connection.execute(
+      `SELECT user_id FROM Users WHERE email = :email`,
+      { email }
+    );
+
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({ error: 'User with this email already exists' });
+    }
+
+    // Insert new user with password (role defaults to 'user')
     const result = await connection.execute(
-      `INSERT INTO Users (name, email, address, phone, role) VALUES (:name, :email, :address, :phone, :role) RETURNING user_id INTO :id`,
-      { name, email, address, phone, role: role || 'user', id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER } },
+      `INSERT INTO Users (name, email, password, address, phone) VALUES (:name, :email, :password, :address, :phone) RETURNING user_id INTO :id`,
+      { name, email, password, address, phone, id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER } },
       { autoCommit: true }
     );
 

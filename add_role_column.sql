@@ -1,0 +1,1 @@
+ALTER TABLE Users ADD role VARCHAR2(20) DEFAULT 'user';

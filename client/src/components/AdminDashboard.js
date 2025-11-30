@@ -29,15 +29,16 @@ const AdminDashboard = () => {
   const fetchAllData = async () => {
     setLoading(true);
     try {
+      const adminHeaders = { headers: { 'x-user-role': 'admin' } };
       const [waterSourcesRes, consumptionRecordsRes, waterMetersRes, billingRes, implementationRecordsRes, usersRes, conservationMethodsRes, waterSavingsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/water-sources'),
-        axios.get('http://localhost:5000/api/consumption-records'),
-        axios.get('http://localhost:5000/api/water-meters'),
-        axios.get('http://localhost:5000/api/billing'),
-        axios.get('http://localhost:5000/api/implementation-records'),
-        axios.get('http://localhost:5000/api/users'),
-        axios.get('http://localhost:5000/api/conservation-methods'),
-        axios.get('http://localhost:5000/api/water-savings', { headers: { 'x-user-role': 'admin' } })
+        axios.get('http://localhost:5000/api/water-sources', adminHeaders),
+        axios.get('http://localhost:5000/api/consumption-records', adminHeaders),
+        axios.get('http://localhost:5000/api/water-meters', adminHeaders),
+        axios.get('http://localhost:5000/api/billing', adminHeaders),
+        axios.get('http://localhost:5000/api/implementation-records', adminHeaders),
+        axios.get('http://localhost:5000/api/users', adminHeaders),
+        axios.get('http://localhost:5000/api/conservation-methods', adminHeaders),
+        axios.get('http://localhost:5000/api/water-savings', adminHeaders)
       ]);
 
       setData({
@@ -95,15 +96,13 @@ const AdminDashboard = () => {
   const handleAddConservationMethod = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:5000/api/conservation-methods', {
+      await axios.post('http://localhost:5000/api/conservation-methods', {
         methodName: newMethod.methodName,
         description: newMethod.description,
         cost: newMethod.cost,
         efficiencyRating: newMethod.efficiencyRating
       }, {
-        headers: {
-          'x-user-role': 'admin'
-        }
+        headers: { 'x-user-role': 'admin' }
       });
 
       alert('Conservation method added successfully!');

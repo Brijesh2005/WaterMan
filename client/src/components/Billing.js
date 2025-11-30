@@ -54,7 +54,7 @@ const Billing = () => {
     setLoading(true);
     try {
       await axios.post('http://localhost:5000/api/billing', {
-        userId: user.id,
+        userId: user.user_id,
         periodStart: formData.periodStart,
         periodEnd: formData.periodEnd,
         totalUsage: formData.totalUsage,
@@ -165,23 +165,23 @@ const Billing = () => {
                 <table className="table table-striped">
                   <thead>
                     <tr>
-                      {/* ID column removed */}
                       <th>User ID</th>
-                      <th>Amount</th>
-                      <th>Due Date</th>
-                      <th>Status</th>
-                      <th>Date Created</th>
+                      <th>Period Start</th>
+                      <th>Period End</th>
+                      <th>Total Usage</th>
+                      <th>Amount Due</th>
+                      <th>Payment Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {bills.map((bill, index) => (
                       <tr key={index}>
-                        {/* <td>{bill[0]}</td> ID removed */}
                         <td>{bill[0]}</td>
                         <td>{bill[1]}</td>
                         <td>{bill[2]}</td>
                         <td>{bill[3]}</td>
                         <td>{bill[4]}</td>
+                        <td>{bill[5]}</td>
                       </tr>
                     ))}
                   </tbody>

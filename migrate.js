@@ -74,7 +74,11 @@ const runSqlMigrations = async () => {
       'migrations/001_modify_tables_for_no_id_columns.sql',
       'migrations/002_adjust_migration_to_current_schema.sql',
       'migrations/003_add_conservation_tables.sql',
-      'migrations/004_add_role_to_users.sql'
+      'migrations/004_add_role_to_users.sql',
+      'migrations/005_add_password_to_users.sql',
+      'migrations/006_add_water_savings_table.sql',
+      'migrations/007_add_water_saved_column.sql',
+      'migrations/008_add_date_created_to_water_savings.sql'
     ];
 
     for (const file of migrationFiles) {

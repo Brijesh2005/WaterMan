@@ -15,8 +15,11 @@ async function createTables() {
       connectString: process.env.DB_CONNECT_STRING,
     });
 
-    // Drop tables if they exist
+    // Drop tables if they exist (in reverse dependency order)
     const dropStatements = [
+      'DROP TABLE WaterSavings CASCADE CONSTRAINTS',
+      'DROP TABLE ImplementationRecord CASCADE CONSTRAINTS',
+      'DROP TABLE ConservationMethod CASCADE CONSTRAINTS',
       'DROP TABLE ConsumptionRecords CASCADE CONSTRAINTS',
       'DROP TABLE Billing CASCADE CONSTRAINTS',
       'DROP TABLE Alerts CASCADE CONSTRAINTS',

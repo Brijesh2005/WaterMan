@@ -38,17 +38,6 @@ CREATE TABLE ConsumptionRecords (
     FOREIGN KEY (water_meter_number) REFERENCES WaterMeters(meter_number) ON DELETE CASCADE
 );
 
--- -- Alerts table (linked to Users)
--- CREATE TABLE Alerts (
---     user_id NUMBER NOT NULL,
---     message VARCHAR2(500) NOT NULL,
---     type VARCHAR2(50),
---     date_issued TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
---     status VARCHAR2(20) DEFAULT 'active',
---     PRIMARY KEY (user_id, date_issued),
---     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
--- );
-
 -- Billing table (linked to Users)
 CREATE TABLE Billing (
     user_id NUMBER NOT NULL,
