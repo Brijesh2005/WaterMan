@@ -14,7 +14,7 @@ A full-stack web application for managing water consumption, conservation tips, 
 - **Water Savings** - Calculate and track water savings from implemented methods
 - **Alerts** - Send notifications and alerts to users
 - **Admin Dashboard** - Administrative interface for managing the system
-- **Responsive Design** - Works on desktop and mobile devices
+- **Responsive Design** - Works on desktop and mobile system
 
 ## Tech Stack
 
